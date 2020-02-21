@@ -28,8 +28,12 @@ void onWifiConnect(const WiFiEventStationModeGotIP &event) {
 }
 
 void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
+    // kill webserver
+    server.close();
+    server.stop();
+
     Serial.println("Disconnected from Wi-Fi.");
-    wifiReconnectTimer.once(2, connectToWifi);
+    wifiReconnectTimer.once(4, connectToWifi);
 }
 
 void startWebServer() {
