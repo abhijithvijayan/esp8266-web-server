@@ -4,13 +4,14 @@
 
 #define WIFI_SSID "My_Wi-Fi"
 #define WIFI_PASSWORD "my-awesome-password"
+#define HTTP_SERVER_PORT 8266
 
 WiFiEventHandler wifiConnectHandler;
 WiFiEventHandler wifiDisconnectHandler;
 Ticker wifiReconnectTimer;
 
-// initialise server at port 8266
-ESP8266WebServer server(8266);
+// initialise server
+ESP8266WebServer server(HTTP_SERVER_PORT);
 
 void connectToWifi() {
     Serial.println("Connecting to Wi-Fi...");
@@ -18,14 +19,27 @@ void connectToWifi() {
 }
 
 void onWifiConnect(const WiFiEventStationModeGotIP &event) {
-    Serial.println("Connected to Wi-Fi.");
-    Serial.println("Local IP address: ");
+    Serial.printf("Connected to Wi-Fi: `%s`\n", WiFi.SSID().c_str());
+    Serial.print("Local IP address: ");
     Serial.println(WiFi.localIP());
+    Serial.println();
+    // start server
+    startWebServer();
 }
 
 void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
     Serial.println("Disconnected from Wi-Fi.");
     wifiReconnectTimer.once(2, connectToWifi);
+}
+
+void startWebServer() {
+    server.begin();
+
+    Serial.print("Web server started, open `");
+    Serial.print(WiFi.localIP().toString().c_str());
+    Serial.print(":");
+    Serial.print(HTTP_SERVER_PORT);
+    Serial.println("` in a web browser\n");
 }
 
 String generateRootHTML() {
@@ -35,12 +49,12 @@ String generateRootHTML() {
     pageContent += "<meta name=\"viewport\" content=\"width=device-width, "
                    "initial-scale=1.0\">\n";
     pageContent += "<title>ESP8266 Web Server</title>\n</head>\n";
-    pageContent += "<body>\n<p>Hello World :)</p>\n</body>\n</html>";
+    pageContent += "<body>\n<p>Hello World 🤨</p>\n</body>\n</html>";
 
     return pageContent;
 }
 
-void getRootPath() { server.send(200, "text/html", generateRootHTML()); }
+void serveRootPage() { server.send(200, "text/html", generateRootHTML()); }
 
 void setup() {
     Serial.begin(115200);
@@ -48,14 +62,11 @@ void setup() {
 
     wifiConnectHandler    = WiFi.onStationModeGotIP(onWifiConnect);
     wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+
+    // server routes
+    server.on("/", serveRootPage);
+
     connectToWifi();
-
-    delay(100);
-
-    server.on("/", getRootPath);
-
-    server.begin();
-    Serial.println("HTTP server started");
 }
 
 void loop() { server.handleClient(); }
