@@ -5,6 +5,7 @@
 #define WIFI_SSID "My_Wi-Fi"
 #define WIFI_PASSWORD "my-awesome-password"
 #define HTTP_SERVER_PORT 8266
+#define SERIAL_MONITOR_PORT 115200
 
 WiFiEventHandler wifiConnectHandler;
 WiFiEventHandler wifiDisconnectHandler;
@@ -39,11 +40,11 @@ void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
 void startWebServer() {
     server.begin();
 
-    Serial.print("Web server started, open `");
+    Serial.print("Web server started, open http://");
     Serial.print(WiFi.localIP().toString().c_str());
     Serial.print(":");
     Serial.print(HTTP_SERVER_PORT);
-    Serial.println("` in a web browser\n");
+    Serial.println("/ in a web browser\n");
 }
 
 String generateRootHTML() {
@@ -70,11 +71,25 @@ String generateNotFoundHTML() {
     return pageContent;
 }
 
-void serveRootPage() { server.send(200, "text/html", generateRootHTML()); }
-void handleNotFound() { server.send(404, "text/html", generateNotFoundHTML()); }
+void verboseRequest(int status) {
+    Serial.print((server.method() == HTTP_GET) ? "[GET] " : "[POST] ");
+    Serial.print(server.uri());
+    Serial.print(" ");
+    Serial.println(status);
+}
+
+void serveRootPage() {
+    verboseRequest(200);
+    server.send(200, "text/html", generateRootHTML());
+}
+
+void handleNotFound() {
+    verboseRequest(404);
+    server.send(404, "text/html", generateNotFoundHTML());
+}
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(SERIAL_MONITOR_PORT);
     Serial.println();
 
     wifiConnectHandler    = WiFi.onStationModeGotIP(onWifiConnect);
