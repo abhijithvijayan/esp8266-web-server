@@ -54,7 +54,20 @@ String generateRootHTML() {
     return pageContent;
 }
 
+String generateNotFoundHTML() {
+    String pageContent = "<!DOCTYPE html>\n";
+    pageContent += "<html lang=\"en\">\n";
+    pageContent += "<head>\n<meta charset=\"UTF-8\">\n";
+    pageContent += "<meta name=\"viewport\" content=\"width=device-width, "
+                   "initial-scale=1.0\">\n";
+    pageContent += "<title>404 | Not Found</title>\n</head>\n";
+    pageContent += "<body>\n<p>404 | Not Found 😴</p>\n</body>\n</html>";
+
+    return pageContent;
+}
+
 void serveRootPage() { server.send(200, "text/html", generateRootHTML()); }
+void handleNotFound() { server.send(200, "text/html", generateNotFoundHTML()); }
 
 void setup() {
     Serial.begin(115200);
@@ -65,6 +78,7 @@ void setup() {
 
     // server routes
     server.on("/", serveRootPage);
+    server.onNotFound(handleNotFound);
 
     connectToWifi();
 }
