@@ -71,7 +71,7 @@ String generateNotFoundHTML() {
 }
 
 void serveRootPage() { server.send(200, "text/html", generateRootHTML()); }
-void handleNotFound() { server.send(200, "text/html", generateNotFoundHTML()); }
+void handleNotFound() { server.send(404, "text/html", generateNotFoundHTML()); }
 
 void setup() {
     Serial.begin(115200);
